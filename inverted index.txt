@@ -1,0 +1,217 @@
+// inverted index.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include<iostream>
+#include<sstream>
+#include <iterator>
+#include <fstream>
+#include<string>
+#include<vector>
+#include<algorithm>
+
+using namespace std;
+
+struct  Node
+{
+	Node *left;
+	Node *right;
+	string word;
+	vector<string> doc_id;
+	Node(string word, string doc, Node *left = NULL, Node *right = NULL)
+	{
+		this->word = word;
+		doc_id.push_back(doc);
+		this->left = left;
+		this->right = right;
+
+	}
+	
+	void insert_R(string word, string doc)
+	{
+		right = new Node(word, doc);
+	}
+	void insert_L(string word, string doc)
+	{
+		left = new Node(word, doc);
+	}
+	bool is_leaf()
+	{
+		return (left == NULL && right == NULL);
+	}
+
+};
+string ToLower(string s)
+{
+	for (int i = 0;i < s.length();i++)
+	{
+		s[i]=tolower(s[i]);
+	}
+	return s;
+}
+
+string remove_trash(string s)
+{
+	int x = s.length() - 1;
+	if (s[x] == '?' || s[x] == '.' || s[x] == '!')
+		s.erase(x,1);
+	
+	return s;
+}
+
+
+class Tree
+{
+	Node * Tree_root;
+
+public:
+	Tree()
+	{
+		Tree_root=NULL;
+	}
+	bool insert(string word,string doc)
+	{
+		word =	ToLower(word);
+		word = remove_trash(word);
+		if (Tree_root == NULL)
+		{
+			Tree_root = new Node(word, doc);
+			return true;
+		}
+		Node * temp = Tree_root;
+		while (temp != NULL)
+		{
+			string S_temp = temp->word;	
+
+			if (word == S_temp)
+			{
+				temp->doc_id.push_back(doc);
+				return false;
+			}
+			
+			else if (word < S_temp)
+			{
+				if (temp->left == NULL)
+				{
+					temp->insert_L(word, doc);
+					return true;
+				}
+				else
+					temp = temp->left;
+
+			}
+			else
+			{
+				if (temp->right == NULL)
+				{
+					temp->insert_R(word, doc);
+					return true;
+				}
+				else
+					temp = temp->right;
+			}
+					
+		}
+		
+	}
+
+	bool  search(string word, vector<string> & vec)
+	{
+		if (Tree_root == NULL) //check in main if the vector is empty
+		{
+			return false;
+		}
+		Node *temp = Tree_root;
+		while (temp != NULL)
+		{
+			string S_temp = temp->word;
+			if (S_temp == word)
+			{
+				vec = temp->doc_id;
+				return true;
+			}
+			
+			if (word < S_temp)
+			{
+				if (temp->left == NULL)
+				{
+					return false;
+				}
+				else
+				{
+					temp = temp->left;
+				}
+			}
+			else
+			{
+				if (word > S_temp)
+				{
+					if (temp->right == NULL)
+					{
+						return false;
+					}
+					else
+					{
+						temp = temp->right;
+					}
+				}
+			}
+		}
+
+		
+	}
+};
+
+int main()
+
+{
+	string S[6] = { "amr","lama","salah","reem","mario","mosalah" };
+	string K[3] = { "lama","miro","salah" };
+	string A;
+	cin >> A;
+
+	Tree tree;
+	std::ifstream inFile;
+	string x;
+	vector <string> a;
+		string out;
+		for (int i = 0;i < 100000;i++)
+		{
+			out = to_string(i);
+			string lel = "C:\\Users\\Owner\\Desktop\\ds\\questions\\" + out + ".txt";
+			inFile.open(lel);
+			if (!inFile) {
+				cout << "Unable to open file datafile.txt";
+				exit(1);   // call system to stop
+			}
+			while (inFile >> x)
+			{
+				
+				tree.insert(x,to_string(i));
+			}
+			inFile.close();
+		}
+	
+
+
+	
+	vector <string> vec;
+
+	cout << "done" << endl;
+
+	if (!tree.search(A,vec))
+	{
+		cout << "404 NOT FOUND" << endl << "RAKKEZ YA 700MAR" << endl;
+	}
+	else
+	{
+		for (int i = 0;i < vec.size();i++)
+		{
+			cout << vec[i] << endl;
+		}
+	}
+
+	system("pause");
+	return 0;
+}
+
